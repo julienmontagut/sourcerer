@@ -1,0 +1,28 @@
+{
+  currentUser {
+    username,
+    groups {
+      nodes {
+        fullName
+        fullPath
+      }
+    }
+  }
+  group(fullPath: "gitlab-org") {
+    descendantGroups {
+      nodes {
+        fullName
+        fullPath
+      }
+    }
+    projects(includeSubgroups: true) {
+      nodes {
+        id
+        name
+        fullPath
+        httpUrlToRepo
+        sshUrlToRepo
+      }
+    }
+  }
+}
