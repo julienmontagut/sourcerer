@@ -5,4 +5,4 @@
 
 ## Features
 
-- [ ] Add sync and list from [GitHub Rest API](https://docs.github.com/en/rest)
+- [ ] Use the graphQL api [Explorer - Documentation GitHub](https://docs.github.com/fr/graphql/overview/explorer)
