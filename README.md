@@ -7,21 +7,21 @@ An easy way to manage multiple Git repositories at once.
 Using [cargo](https://crates.io/):
 
 ```bash
-cargo install git-multi
+cargo install srcman
 ```
 
 ## Usage
 
 ```bash
-git-multi [OPTIONS] [SUBCOMMAND]
+srcman [OPTIONS] [SUBCOMMAND]
 ```
 
 ## Subcommands
 
 ```bash
+init        Initialize srcman in the current directory
 list        List all repositories
-pull        Pull all repositories
-push        Push all repositories
+fetch       Fetch all repositories
+push        Push changes from all repositories that have unpushed changes
 status      Show the status of all repositories
-sync        Sync all repositories from GitHub
 ```

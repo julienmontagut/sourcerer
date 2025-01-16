@@ -1,88 +1,123 @@
-use std::{fs::File, io::Write, process::exit};
-
-use clap::{arg, Command};
-
-use crate::github::{client::Client, data::User};
-use crate::github::data::Repository;
-
+mod args;
+mod conf;
+mod dirs;
+mod git;
 mod github;
+mod repo;
+use args::{Args, Command};
+use clap::Parser;
+use conf::Config;
+use github::{
+    client::Client,
+    data::{Repository, User},
+};
+use std::{env, fs::File, io::Write, process::ExitCode};
 
-fn main() {
-    let matches = Command::new(env!("CARGO_PKG_NAME"))
-        .version(env!("CARGO_PKG_VERSION"))
-        .about(env!("CARGO_PKG_DESCRIPTION"))
-        .disable_version_flag(true)
-        .args(&[
-            arg!(-v --version       "Get the version"),
-            arg!(-d --debug         "Print debug information"),
-            arg!(-s --save <path>   "Save response to files"),
-            arg!(<token>            "The Personal Access Token for GitHub").required(true),
-        ])
-        .get_matches();
+fn main() -> ExitCode {
+    let Ok(root_dir) = dirs::get_root_dir() else {
+        eprintln!("Error: Failed to find the root directory");
+        return ExitCode::FAILURE;
+    };
 
-    if matches.get_flag("version") {
-        println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
-        exit(0);
+    let args = Args::parse();
+
+    let Ok(config) = Config::load(args.config) else {
+        eprintln!("Warning: Failed to load config file using default values");
+        return ExitCode::FAILURE;
+    };
+
+    let token = env::var("GITHUB_TOKEN").ok();
+
+    let command = args.command.unwrap_or(Command::Status);
+
+    match command {
+        Command::Init => {
+            println!("Init");
+        }
+        Command::Status => {
+            // For each repository in the directory, get the status and print it pretty
+            let repos = std::fs::read_dir(root_dir).unwrap();
+            for repo in repos {
+                match repo {
+                    Ok(dir) => {
+                        let repo = git::Repository::try_from(dir.path());
+                        if let Ok(repo) = repo {
+                            let status = repo.status().unwrap();
+                            println!("{}: {}", repo.path().display().to_string(), status);
+                        } else {
+                            eprintln!("Warning: {} is not a git repository", dir.path().display());
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Error: {}", e);
+                    }
+                }
+            }
+            return ExitCode::SUCCESS;
+        }
     }
 
-    let is_debug_enabled = matches.get_flag("debug");
-    let save_file = matches.get_one::<String>("save");
-    let token = matches.get_one::<String>("token")
-        .expect("Error: token is required");
+    let Ok(token) = env::var("GITHUB_TOKEN") else {
+        eprintln!("Error: GITHUB_TOKEN is required");
+        return ExitCode::FAILURE;
+    };
 
     let client = Client::new(token.as_str());
     let octocat = client.get_octocat().unwrap();
     println!("Octocat: {}", octocat);
 
     if let Ok(user) = client.get::<User>("user") {
-        if is_debug_enabled {
-            println!("{0:#?}", user);
+        if args.debug {
+            println!("{:#?}", user);
         }
     }
 
     if let Ok(repos) = client.get::<Vec<Repository>>("user/repos") {
-        if is_debug_enabled {
-            println!("{0:#?}", repos);
+        if args.debug {
+            println!("{:#?}", repos);
         }
     }
 
     if let Ok(response) = client.get_user_orgs() {
-        if is_debug_enabled {
+        if args.debug {
             println!("{}", response);
         }
-        if let Some(path) = save_file {
+        if let Some(path) = &args.save {
             let path = format!("{}/orgs.json", path);
             file_write_response(&path, response);
         }
     }
 
     if let Ok(response) = client.get_user_starred() {
-        if is_debug_enabled {
+        if args.debug {
             println!("{}", response);
         }
-        if let Some(path) = save_file {
+        if let Some(path) = &args.save {
             let path = format!("{}/starred.json", path);
             file_write_response(&path, response);
         }
     }
 
     if let Ok(response) = client.get_user_watched() {
-        if is_debug_enabled {
+        if args.debug {
             println!("{}", response);
         }
-        if let Some(path) = save_file {
+        if let Some(path) = &args.save {
             let path = format!("{}/watched.json", path);
             file_write_response(&path, response);
         }
     }
+
+    ExitCode::SUCCESS
 }
 
 fn file_write_response(path: &str, response: String) {
     match File::create(path) {
         Ok(mut file) => {
-            file.write_all(response.as_bytes()).expect("Error");
-            file.flush().expect("Error");
+            file.write_all(response.as_bytes())
+                .expect("Error writing file");
+            file.flush().expect("Error flushing file");
         }
-        Err(error) => println!("Error: {}", error),
+        Err(error) => eprintln!("Error creating file: {}", error),
     }
 }
