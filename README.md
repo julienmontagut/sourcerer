@@ -1,4 +1,4 @@
-# GitHub Multi CLI
+# Srcman
 
 An easy way to manage multiple Git repositories at once.
 
