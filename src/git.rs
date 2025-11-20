@@ -1,8 +1,6 @@
-use std::fmt;
-use std::fs::DirEntry;
+use std::fmt::Display;
 use std::path::PathBuf;
-
-use serde::de::value;
+use std::{fmt, process::Command};
 
 type Error = std::io::Error;
 
@@ -12,6 +10,7 @@ pub struct Repository {
     path: PathBuf,
 }
 
+#[derive(PartialEq, Eq)]
 pub enum Status {
     Clean,
     Dirty,
@@ -19,7 +18,7 @@ pub enum Status {
     Behind,
 }
 
-impl fmt::Display for Status {
+impl Display for Status {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Status::Clean => write!(f, "Clean"),
@@ -32,9 +31,12 @@ impl fmt::Display for Status {
 
 impl Repository {
     pub fn status(&self) -> Result<Status, Box<dyn std::error::Error>> {
-        let repo = git2::Repository::open(&self.path)?;
-        let status = repo.statuses(None)?;
-        if status.is_empty() {
+        // Call git command to get the status
+        let status = Command::new("git")
+            .args(["status", "--porcelain"])
+            .current_dir(&self.path)
+            .output()?;
+        if status.status.success() {
             Ok(Status::Clean)
         } else {
             Ok(Status::Dirty)
