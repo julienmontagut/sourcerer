@@ -1,4 +1,4 @@
-use clap::Parser;
+pub use clap::Parser;
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -8,8 +8,6 @@ use std::path::PathBuf;
     about = "A CLI tool to manage several repositories at once"
 )]
 pub struct Args {
-    // #[arg(short, long)]
-    // pub version: bool,
     #[arg(short, long, value_name = "CONFIG_PATH")]
     pub config: Option<PathBuf>,
 

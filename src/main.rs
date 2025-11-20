@@ -1,25 +1,23 @@
 mod args;
 mod conf;
 mod dirs;
+mod forge;
 mod git;
-mod github;
-mod repo;
 use args::{Args, Command};
 use clap::Parser;
 use conf::Config;
-use github::{
-    client::Client,
-    data::{Repository, User},
-};
+use forge::{Forge, Github, Repo, User};
+
 use std::{env, fs::File, io::Write, process::ExitCode};
 
 fn main() -> ExitCode {
+    let args = Args::parse();
+
+    // TODO: Update the behaviour to find directories from home
     let Ok(root_dir) = dirs::get_root_dir() else {
         eprintln!("Error: Failed to find the root directory");
         return ExitCode::FAILURE;
     };
-
-    let args = Args::parse();
 
     let Ok(config) = Config::load(args.config) else {
         eprintln!("Warning: Failed to load config file using default values");

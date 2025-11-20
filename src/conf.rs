@@ -1,15 +1,33 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub(crate) struct Config {
+    #[serde(serialize_with = "path_to_string", deserialize_with = "string_to_path")]
+    workspaces: Vec<PathBuf>,
     token: String,
     save_file: Option<String>,
+    user: User,
+}
+
+fn path_to_string<S>(path: &PathBuf, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    serializer.serialize_str(&path.to_string_lossy())
+}
+
+fn string_to_path<D>(path: &str, deserializer: D) -> Result<PathBuf, D::Error>
+where
+    D: serde::Deserializer,
+{
+    Ok(PathBuf::from(path))
 }
 
 impl Config {
     pub fn new() -> Self {
         Self {
+            workspaces: Vec::new(),
             token: String::new(),
             save_file: None,
         }

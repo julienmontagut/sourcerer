@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct User {
+pub struct GithubUser {
     email: String,
     login: String,
     name: String,
@@ -12,7 +12,7 @@ pub struct User {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Repository {
+pub struct GithubRepository {
     id: i64,
     name: String,
     full_name: String,
@@ -87,7 +87,7 @@ pub struct Repository {
     pushed_at: String,
     created_at: String,
     updated_at: String,
-    permissions: Permissions,
+    permissions: GithubPermissions,
     allow_rebase_merge: Option<bool>,
     temp_clone_token: Option<String>,
     allow_squash_merge: Option<bool>,
@@ -110,14 +110,14 @@ pub struct License {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Permissions {
+pub struct GithubPermissions {
     pull: bool,
     push: bool,
     admin: bool,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct Organization {
+pub struct GithubOrganization {
     login: String,
     id: i64,
     node_id: String,
@@ -153,7 +153,7 @@ pub struct Organization {
     disk_usage: i64,
     collaborators: i64,
     billing_email: String,
-    plan: Plan,
+    plan: GithubPlan,
     default_repository_permission: String,
     members_can_create_repositories: bool,
     two_factor_requirement_enabled: bool,
@@ -166,7 +166,7 @@ pub struct Organization {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct Plan {
+pub struct GithubPlan {
     name: String,
     space: i64,
     private_repos: i64,
