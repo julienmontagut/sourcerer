@@ -3,6 +3,10 @@ name = "sourcerer"
 version = "0.1.0"
 edition = "2021"
 description = "A cli tool to manage several repositories at once"
+license = "GPL-3.0-or-later"
+authors = ["Julien Montagut <_@julienmontagut.com>"]
+repository = "https://codeberg.org/julienmontagut/sourcerer"
+readme = "README.md"
 
 [dependencies]
 clap =  { version = "4.0.29", features = [ "derive" ] }
